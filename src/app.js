@@ -1,6 +1,9 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./model/user");
+const { validateSignupData } = require("./model/utils/validation");
+const bcrypt = require("bcrypt");
+const user = require("./model/user");
 
 const app = express();
 const PORT = 3000;
@@ -9,13 +12,42 @@ app.use(express.json());
 
 app.post("/signup", async (req, res) => {
     try {
-        const user = new User(req.body);
+        validateSignupData(req);
+        const { firstName, lastName, emailId, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("pass:", hashedPassword);
+
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: hashedPassword,
+        });
         await user.save();
         res.send("User added successfully!");
     } catch (err) {
         res.status(400).send("Something went wrong: " + err.message);
     }
 });
+
+app.post("/login", async (req, res) => {
+    try {
+        const { emailId, password } = req.body;
+        const user = await User.findOne({ emailId: emailId });
+        if (!user) {
+            throw new Error("Invalid credentials");
+
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+        }
+        res.send("Login successful!");
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+})
 
 app.get("/feed", async (req, res) => {
     try {
@@ -67,7 +99,7 @@ app.patch("/user/:userId", async (req, res) => {
         }
 
         const user = await User.findByIdAndUpdate(_id, data, { returnDocument: "after", runValidators: true });
-        console.log(user);
+        // console.log(user);
         res.send("Data updated successfully...")
 
     } catch (err) {
