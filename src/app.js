@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./model/user");
+const { userAuth } = require("./middlewares/auth");
 const { validateSignupData } = require("./model/utils/validation");
 const bcrypt = require("bcrypt");
 const user = require("./model/user");
@@ -8,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const cookieParser = require("cookie-parser");
 const PORT = 3000;
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -43,7 +45,7 @@ app.post("/login", async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (isPasswordValid) {
-            const token = await jwt.sign({ _id: user._id }, "Dev@Tinder#2025");
+            const token = await jwt.sign({ _id: user._id }, "Dev@Tinder#2025", { expiresIn: "1m" });
             // console.log("token:", token);
             res.cookie("token", token);
             res.send("Login successful!");
@@ -56,7 +58,16 @@ app.post("/login", async (req, res) => {
     }
 })
 
-app.get("/feed", async (req, res) => {
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        res.send("Connection request sent from " + user.firstName);
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+})
+
+app.get("/feed", userAuth, async (req, res) => {
     try {
         const users = await User.find({});
         res.send(users);
@@ -80,19 +91,9 @@ app.get("/user", async (req, res) => {
     }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const token = req.cookies.token;
-        if (!token) {
-            throw new Error("Unauthorized: Invalid token");
-        }
-        const decodedMessage = jwt.verify(token, "Dev@Tinder#2025");
-        const { _id } = decodedMessage;
-        const user = await User.findById(_id);
-        if (!user) {
-            throw new Error("User not found");
-        }
-
+        const user = req.user;
         res.send("Logged in user profile: " + user);
     } catch (err) {
         res.status(400).send("Something went wrong: " + err.message);
