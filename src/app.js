@@ -1,78 +1,19 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./model/user");
-const { userAuth } = require("./middlewares/auth");
-const { validateSignupData } = require("./model/utils/validation");
-const bcrypt = require("bcrypt");
 const app = express();
 const cookieParser = require("cookie-parser");
 const PORT = 3000;
-
+const authRoute = require("./routes/auth");
+const profileRoute = require("./routes/profile");
+const requestRoute = require("./routes/request");
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req, res) => {
-    try {
-        validateSignupData(req);
-        const { firstName, lastName, emailId, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("pass:", hashedPassword);
-
-        const user = new User({
-            firstName,
-            lastName,
-            emailId,
-            password: hashedPassword,
-        });
-        await user.save();
-        res.send("User added successfully!");
-    } catch (err) {
-        res.status(400).send("Something went wrong: " + err.message);
-    }
-});
-
-app.post("/login", async (req, res) => {
-    try {
-        const { emailId, password } = req.body;
-        const user = await User.findOne({ emailId: emailId });
-
-        if (!user) {
-            throw new Error("Invalid credentials");
-        }
-
-        const isPasswordValid = await user.validatePassword(password);
-
-        if (isPasswordValid) {
-            const token = await user.getJWT();
-            res.cookie("token", token);
-            res.send("Login successful!");
-        }
-        else {
-            throw new Error("Invalid credentials");
-        }
-    } catch (err) {
-        res.status(400).send("Something went wrong: " + err.message);
-    }
-})
-
-app.post("/sendConnectionRequest", userAuth, async (req, res) => {
-    try {
-        const user = req.user;
-        res.send("Connection request sent from " + user.firstName);
-    } catch (err) {
-        res.status(400).send("Something went wrong: " + err.message);
-    }
-})
-
-app.get("/feed", userAuth, async (req, res) => {
-    try {
-        const users = await User.find({});
-        res.send(users);
-    } catch (err) {
-        res.status(400).send("Something went wrong: " + err.message);
-    }
-})
+app.use("/", authRoute);
+app.use("/", profileRoute);
+app.use("/", requestRoute);
 
 app.get("/user", async (req, res) => {
     try {
@@ -88,15 +29,6 @@ app.get("/user", async (req, res) => {
         res.status(400).send("Something went wrong: " + err.message);
     }
 });
-
-app.get("/profile", userAuth, async (req, res) => {
-    try {
-        const user = req.user;
-        res.send("Logged in user profile: " + user);
-    } catch (err) {
-        res.status(400).send("Something went wrong: " + err.message);
-    }
-})
 
 app.delete("/user", async (req, res) => {
     userId = req.body.userId;
