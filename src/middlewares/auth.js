@@ -11,12 +11,12 @@ const adminAuth = (req, res, next) => {
 };
 
 const userAuth = async (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) {
-        throw new Error("Unauthorized: Invalid token");
-    }
-
     try {
+        const token = req.cookies.token;
+        if (!token) {
+            throw new Error("Invalid token");
+        }
+
         const decodedMessage = jwt.verify(token, "Dev@Tinder#2025");
         const { _id } = decodedMessage;
 

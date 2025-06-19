@@ -4,18 +4,21 @@ const { validateSignupData } = require("../model/utils/validation");
 const bcrypt = require("bcrypt");
 const User = require("../model/user");
 
-route.post("/signup", async (req, res) => {
+route.post("/auth/signup", async (req, res) => {
     try {
         validateSignupData(req);
-        const { firstName, lastName, emailId, password } = req.body;
+        const { firstName, lastName, emailId, password, age, gender, photoUrl, skills } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("pass:", hashedPassword);
 
         const user = new User({
             firstName,
             lastName,
             emailId,
             password: hashedPassword,
+            age,
+            gender,
+            photoUrl,
+            skills
         });
         await user.save();
         res.send("User added successfully!");
@@ -24,7 +27,7 @@ route.post("/signup", async (req, res) => {
     }
 });
 
-route.post("/login", async (req, res) => {
+route.post("/auth/login", async (req, res) => {
     try {
 
         const { emailId, password } = req.body;
@@ -48,5 +51,14 @@ route.post("/login", async (req, res) => {
         res.status(400).send("Something went wrong: " + err.message);
     }
 })
+
+route.post("/auth/logout", async (req, res) => {
+    try {
+        res.clearCookie("token");
+        res.send("Logout successful!");
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+});
 
 module.exports = route;
