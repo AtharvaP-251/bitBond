@@ -1,9 +1,9 @@
-const esxpress = require('express');
-const route = esxpress.Router();
-const { userAuth } = require("../middlewares/auth");
-const User = require("../model/user");
+const express = require('express');
+const route = express.Router();
 const validator = require('validator');
 const bcrypt = require("bcrypt");
+const User = require("../model/user");
+const { userAuth } = require("../middlewares/auth");
 
 
 route.get("/profile/feed", userAuth, async (req, res) => {

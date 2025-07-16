@@ -4,9 +4,11 @@ const User = require("./model/user");
 const app = express();
 const cookieParser = require("cookie-parser");
 const PORT = 3000;
+
 const authRoute = require("./routes/auth");
 const profileRoute = require("./routes/profile");
 const requestRoute = require("./routes/request");
+const userRoute = require("./routes/user");
 
 app.use(express.json());
 app.use(cookieParser());
@@ -14,6 +16,7 @@ app.use(cookieParser());
 app.use("/", authRoute);
 app.use("/", profileRoute);
 app.use("/", requestRoute);
+app.use("/", userRoute);
 
 app.get("/user", async (req, res) => {
     try {
