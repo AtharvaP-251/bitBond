@@ -3,6 +3,7 @@ const { userAuth } = require("../middlewares/auth");
 const route = express.Router();
 const ConnectionRequest = require("../model/connectionRequest");
 const User = require("../model/user");
+const { notifyConnectionRequest, notifyConnectionAccepted } = require("../utils/notificationHelper");
 
 
 route.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
@@ -33,6 +34,17 @@ route.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
 
         const data = new ConnectionRequest({ fromUserId, toUserId, status });
         await data.save();
+
+        // Create notification for the recipient
+        if (status === "interested") {
+            const fromUser = req.user;
+            await notifyConnectionRequest(
+                fromUserId,
+                toUserId,
+                fromUser.firstName,
+                data._id
+            );
+        }
 
         res.json({
             message: "Connection request sent successfully",
@@ -67,6 +79,16 @@ route.post("/review/send/:status/:requestId", userAuth, async (req, res) => {
 
         connectionRequest.status = status;
         await connectionRequest.save();
+
+        // Create notification if connection was accepted
+        if (status === "accepted") {
+            await notifyConnectionAccepted(
+                loggedInUser._id,
+                requestId,
+                loggedInUser.firstName,
+                connectionRequest._id
+            );
+        }
 
         res.json({
             message: "Connection request " + status,

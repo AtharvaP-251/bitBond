@@ -6,6 +6,16 @@ const User = require("../model/user");
 const { userAuth } = require("../middlewares/auth");
 
 
+route.get("/profile", userAuth, async (req, res) => {
+    try {
+        const user = req.user;
+        res.json({ data: user });
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+});
+
+
 route.get("/profile/feed", userAuth, async (req, res) => {
     try {
         const users = await User.find({});

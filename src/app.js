@@ -9,6 +9,8 @@ const authRoute = require("./routes/auth");
 const profileRoute = require("./routes/profile");
 const requestRoute = require("./routes/request");
 const userRoute = require("./routes/user");
+const messageRoute = require("./routes/message");
+const notificationRoute = require("./routes/notification");
 const cors = require("cors");
 
 app.use(cors(
@@ -24,6 +26,8 @@ app.use("/", authRoute);
 app.use("/", profileRoute);
 app.use("/", requestRoute);
 app.use("/", userRoute);
+app.use("/", messageRoute);
+app.use("/", notificationRoute);
 
 app.get("/user", async (req, res) => {
     try {
