@@ -49,7 +49,10 @@ route.patch("/profile/edit", userAuth, async (req, res) => {
         updates.forEach((update) => user[update] = req.body[update]);
         await user.save();
 
-        res.send("Profile updated successfully: ");
+        res.json({ 
+            message: "Profile updated successfully",
+            data: user 
+        });
     } catch (err) {
         res.status(400).send("Something went wrong: " + err.message);
     }
