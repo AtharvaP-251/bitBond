@@ -44,6 +44,20 @@ router.post("/messages/send/:receiverId", userAuth, async (req, res) => {
             message._id
         );
 
+        // Emit real-time event to receiver and sender rooms
+        const io = req.app.get("io");
+        if (io) {
+            const payload = {
+                id: message._id.toString(),
+                senderId: senderId.toString(),
+                receiverId: receiverId.toString(),
+                text: message.text,
+                createdAt: message.createdAt
+            };
+            io.to(receiverId.toString()).emit("message:new", payload);
+            io.to(senderId.toString()).emit("message:new", payload);
+        }
+
         res.status(201).json({
             message: "Message sent successfully",
             data: message,

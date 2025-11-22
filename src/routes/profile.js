@@ -39,7 +39,7 @@ route.patch("/profile/edit", userAuth, async (req, res) => {
     try {
         console.log("req.body", req.body);
         const user = req.user;
-        const ALLOWED_UPDATES = ["userId", "firstName", "lastName", "emailId", "photoUrl", "about", "gender", "age", "skills", "title", "location", "website", "github", "linkedin"];
+        const ALLOWED_UPDATES = ["userId", "firstName", "lastName", "emailId", "photoUrl", "about", "gender", "age", "skills", "title", "location", "website", "github", "linkedin", "experience", "availability"];
         const updates = Object.keys(req.body);
         const isAllowedUpdate = updates.every((update) => ALLOWED_UPDATES.includes(update));
 

@@ -81,6 +81,17 @@ const userSchema = new Schema(
             type: String,
             maxLength: 100,
         },
+        
+        experience: {
+            type: Number,
+            min: 0,
+            max: 50,
+        },
+        
+        availability: {
+            type: String,
+            enum: ['available', 'busy', 'not-looking'],
+        },
 
         website: {
             type: String,
@@ -106,6 +117,17 @@ const userSchema = new Schema(
         timestamps: true,
     }
 )
+
+// Text indexing for search functionality
+userSchema.index({ 
+    firstName: 'text', 
+    lastName: 'text', 
+    about: 'text',
+    skills: 'text'
+});
+
+// Index for location and experience searches
+userSchema.index({ location: 1, experience: 1 });
 
 userSchema.methods.getJWT = function () {
     const user = this;
