@@ -4,6 +4,7 @@ const validator = require('validator');
 const bcrypt = require("bcrypt");
 const User = require("../model/user");
 const { userAuth } = require("../middlewares/auth");
+const { upload, uploadToCloudinary } = require("../middlewares/upload");
 
 
 route.get("/profile", userAuth, async (req, res) => {
@@ -89,6 +90,31 @@ route.patch("/profile/password", userAuth, async (req, res) => {
         res.send("Password updated successfully");
     } catch (err) {
         res.status(400).send("Something went wrong: " + err.message);
+    }
+})
+
+route.post("/profile/upload-photo", userAuth, upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Upload to Cloudinary
+        const result = await uploadToCloudinary(req.file.buffer);
+        
+        // Update user's photoUrl
+        const user = req.user;
+        user.photoUrl = result.secure_url;
+        await user.save();
+
+        res.json({ 
+            message: "Photo uploaded successfully",
+            photoUrl: result.secure_url,
+            data: user
+        });
+    } catch (err) {
+        console.error('Upload error:', err);
+        res.status(400).json({ message: "Failed to upload photo: " + err.message });
     }
 })
 

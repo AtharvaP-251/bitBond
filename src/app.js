@@ -1,9 +1,10 @@
+require('dotenv').config();
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./model/user");
 const app = express();
 const cookieParser = require("cookie-parser");
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const authRoute = require("./routes/auth");
 const profileRoute = require("./routes/profile");
