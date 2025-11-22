@@ -24,6 +24,28 @@ route.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
         })
 
         if (existingConnectionRequest) {
+            // If the existing request is from the same user and has "ignored" status,
+            // allow updating it to "interested"
+            if (existingConnectionRequest.fromUserId.equals(fromUserId) && 
+                existingConnectionRequest.status === "ignored" && 
+                status === "interested") {
+                existingConnectionRequest.status = status;
+                await existingConnectionRequest.save();
+
+                // Create notification for the recipient
+                const fromUser = req.user;
+                await notifyConnectionRequest(
+                    fromUserId,
+                    toUserId,
+                    fromUser.firstName,
+                    existingConnectionRequest._id
+                );
+
+                return res.json({
+                    message: "Connection request updated successfully",
+                    data: existingConnectionRequest
+                });
+            }
             return res.status(400).send("Connection request already exists");
         }
 

@@ -48,7 +48,7 @@ const userSchema = new Schema(
         gender: {
             type: String,
             validate(value) {
-                if (!["male", "female", "other"].includes(value)) {
+                if (value && !["male", "female", "other"].includes(value)) {
                     throw new Error("Gender data is invalid...");
                 }
             },
@@ -57,7 +57,7 @@ const userSchema = new Schema(
         photoUrl: {
             type: String,
             validate(value) {
-                if (!validator.isURL(value)) {
+                if (value && !validator.isURL(value)) {
                     throw new Error("Photo url is invalid..." + value);
                 }
             }
@@ -70,6 +70,35 @@ const userSchema = new Schema(
 
         skills: {
             type: [String],
+        },
+
+        title: {
+            type: String,
+            maxLength: 100,
+        },
+
+        location: {
+            type: String,
+            maxLength: 100,
+        },
+
+        website: {
+            type: String,
+            validate(value) {
+                if (value && value.trim() !== '' && !validator.isURL(value)) {
+                    throw new Error("Website URL is invalid: " + value);
+                }
+            }
+        },
+
+        github: {
+            type: String,
+            maxLength: 200,
+        },
+
+        linkedin: {
+            type: String,
+            maxLength: 200,
         },
     },
 

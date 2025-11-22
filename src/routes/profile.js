@@ -38,12 +38,17 @@ route.patch("/profile/edit", userAuth, async (req, res) => {
     try {
         console.log("req.body", req.body);
         const user = req.user;
-        const ALLOWED_UPDATES = ["userId", "firstName", "lastName", "emailId", "photoUrl", "about", "gender", "age", "skills"];
+        const ALLOWED_UPDATES = ["userId", "firstName", "lastName", "emailId", "photoUrl", "about", "gender", "age", "skills", "title", "location", "website", "github", "linkedin"];
         const updates = Object.keys(req.body);
         const isAllowedUpdate = updates.every((update) => ALLOWED_UPDATES.includes(update));
 
         if (!isAllowedUpdate) {
             return res.status(400).send("Invalid updates");
+        }
+
+        // Convert skills from comma-separated string to array if needed
+        if (req.body.skills && typeof req.body.skills === 'string') {
+            req.body.skills = req.body.skills.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
         }
 
         updates.forEach((update) => user[update] = req.body[update]);

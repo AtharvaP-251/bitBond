@@ -5,7 +5,7 @@ const User = require('../model/user');
 const { userAuth } = require("../middlewares/auth");
 const { set } = require('mongoose');
 
-USER_SAFE_DATA = "firstName lastName photoUrl age gender about skils";
+USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
     try {
@@ -45,6 +45,25 @@ userRouter.get("/user/requests/connections", userAuth, async (req, res) => {
         res.status(400).send("Something went wrong: " + err.message);
     }
 })
+
+userRouter.get("/user/requests/passed", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+        const passedProfiles = await ConnectionRequest.find({
+            fromUserId: loggedInUser._id,
+            status: "ignored"
+        }).populate("toUserId", USER_SAFE_DATA);
+
+        // Filter out null values (deleted users)
+        const data = passedProfiles
+            .map((row) => row.toUserId)
+            .filter((user) => user !== null);
+
+        res.status(200).json({ data });
+    } catch (err) {
+        res.status(400).send("Something went wrong: " + err.message);
+    }
+});
 
 userRouter.get("/feed", userAuth, async (req, res) => {
     try {
