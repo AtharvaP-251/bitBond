@@ -81,13 +81,13 @@ const userSchema = new Schema(
             type: String,
             maxLength: 100,
         },
-        
+
         experience: {
             type: Number,
             min: 0,
             max: 50,
         },
-        
+
         availability: {
             type: String,
             enum: ['available', 'busy', 'not-looking'],
@@ -119,9 +119,9 @@ const userSchema = new Schema(
 )
 
 // Text indexing for search functionality
-userSchema.index({ 
-    firstName: 'text', 
-    lastName: 'text', 
+userSchema.index({
+    firstName: 'text',
+    lastName: 'text',
     about: 'text',
     skills: 'text'
 });
@@ -131,7 +131,7 @@ userSchema.index({ location: 1, experience: 1 });
 
 userSchema.methods.getJWT = function () {
     const user = this;
-    const token = jwt.sign({ _id: user._id.toString() }, "Dev@Tinder#2025", { expiresIn: "7d" });
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET || "Dev@Tinder#2025", { expiresIn: "7d" });
     return token;
 }
 

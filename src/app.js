@@ -17,7 +17,7 @@ const cors = require("cors");
 
 app.use(cors(
     {
-        origin: "http://localhost:5173",
+        origin: process.env.FRONTEND_URL || "http://localhost:5173",
         credentials: true
     }
 ));
@@ -95,7 +95,7 @@ connectDB()
 
         const io = new Server(server, {
             cors: {
-                origin: "http://localhost:5173",
+                origin: process.env.FRONTEND_URL || "http://localhost:5173",
                 credentials: true
             }
         });
@@ -106,7 +106,7 @@ connectDB()
                 const cookies = cookie.parse(socket.handshake.headers.cookie || "");
                 const token = cookies.token;
                 if (!token) throw new Error("Invalid token");
-                const decoded = jwt.verify(token, "Dev@Tinder#2025");
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || "Dev@Tinder#2025");
                 socket.userId = decoded._id?.toString();
                 if (!socket.userId) throw new Error("Invalid user");
                 next();
@@ -128,10 +128,16 @@ connectDB()
         // Make io available to routes
         app.set("io", io);
 
-        server.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
-        });
+        if (process.env.NODE_ENV !== 'production') {
+            server.listen(PORT, () => {
+                console.log(`Server is running on http://localhost:${PORT}`);
+            });
+        } else {
+            console.log("Running in production mode (serverless)");
+        }
     })
     .catch((err) => {
         console.log("Database connection failed:", err.message);
     });
+
+module.exports = app;
