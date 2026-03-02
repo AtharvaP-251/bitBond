@@ -45,6 +45,10 @@ app.use("/", messageRoute);
 app.use("/", notificationRoute);
 app.use("/", searchRoute);
 
+app.get("/", (req, res) => {
+    res.send("BitBond API is running!");
+});
+
 app.get("/user", async (req, res) => {
     try {
         const userEmail = req.body.emailId;
