@@ -16,7 +16,8 @@ const searchRoute = require("./routes/search");
 const cors = require("cors");
 
 const allowedOrigins = [
-    process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : "http://localhost:5173",
+    process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") :
+        (process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.replace(/\/$/, "") : "http://localhost:5173"),
     "http://localhost:5173"
 ];
 
