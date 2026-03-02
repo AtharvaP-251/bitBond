@@ -38,6 +38,17 @@ app.use(cors(
 app.use(express.json());
 app.use(cookieParser());
 
+// Database connection middleware for Vercel
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error("Database Connection Error:", error);
+        res.status(500).json({ error: "Database connection failed" });
+    }
+});
+
 app.use("/", authRoute);
 app.use("/", profileRoute);
 app.use("/", requestRoute);
@@ -99,63 +110,7 @@ app.patch("/user/:userId", async (req, res) => {
     }
 })
 
-// Create HTTP server and Socket.IO setup
-const http = require("http");
-const { Server } = require("socket.io");
-const cookie = require("cookie");
-const jwt = require("jsonwebtoken");
-
-connectDB()
-    .then(() => {
-        console.log("Database connection established...");
-
-        const server = http.createServer(app);
-
-        const io = new Server(server, {
-            cors: {
-                origin: allowedOrigins,
-                credentials: true
-            }
-        });
-
-        // Socket authentication middleware
-        io.use((socket, next) => {
-            try {
-                const cookies = cookie.parse(socket.handshake.headers.cookie || "");
-                const token = cookies.token;
-                if (!token) throw new Error("Invalid token");
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || "Dev@Tinder#2025");
-                socket.userId = decoded._id?.toString();
-                if (!socket.userId) throw new Error("Invalid user");
-                next();
-            } catch (err) {
-                next(new Error("Unauthorized"));
-            }
-        });
-
-        io.on("connection", (socket) => {
-            console.log(`User connected: ${socket.userId}`);
-            // Join a private room based on userId for targeted events
-            socket.join(socket.userId);
-
-            socket.on("disconnect", () => {
-                console.log(`User disconnected: ${socket.userId}`);
-            });
-        });
-
-        // Make io available to routes
-        app.set("io", io);
-
-        if (process.env.NODE_ENV !== 'production') {
-            server.listen(PORT, () => {
-                console.log(`Server is running on http://localhost:${PORT}`);
-            });
-        } else {
-            console.log("Running in production mode (serverless)");
-        }
-    })
-    .catch((err) => {
-        console.log("Database connection failed:", err.message);
-    });
+// Remove server listen for Vercel
+app.get("/api/health", (req, res) => res.send("OK"));
 
 module.exports = app;
